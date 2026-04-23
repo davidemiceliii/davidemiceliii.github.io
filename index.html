@@ -3,87 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Area Protetta - Mazara</title>
+    <title>Accesso Modulo Presenze</title>
     <style>
-        :root { --primary: #059669; --error: #e11d48; --bg: #f1f5f9; }
-        body { font-family: -apple-system, system-ui, sans-serif; margin: 0; background-color: var(--bg); display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 1rem; }
-        .container { background: white; padding: 2rem; border-radius: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; max-width: 500px; width: 100%; transition: max-width 0.5s ease; }
-        h1 { font-size: 1.4rem; color: #0f172a; margin-bottom: 1rem; }
-        #status { font-weight: 700; margin: 1.5rem 0; font-size: 1rem; color: #475569; }
-        .btn { background: var(--primary); color: white; border: none; padding: 18px 30px; border-radius: 1rem; font-weight: 700; cursor: pointer; width: 100%; font-size: 1.1rem; }
-        .btn:disabled { opacity: 0.5; }
-        #form-wrapper { display: none; margin-top: 1rem; width: 100%; }
-        iframe { width: 100%; height: 80vh; border: none; border-radius: 0.5rem; }
+        :root { --primary: #059669; --error: #e11d48; --bg: #f8fafc; }
+        body { font-family: -apple-system, system-ui, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: var(--bg); color: #1e293b; }
+        .card { background: white; padding: 2rem; border-radius: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; max-width: 400px; width: 90%; border: 1px solid #e2e8f0; }
+        h1 { font-size: 1.4rem; margin-bottom: 0.5rem; color: #0f172a; }
+        p { color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.4; }
+        #status { font-weight: 700; margin-bottom: 1.5rem; min-height: 1.2rem; font-size: 0.95rem; }
+        .btn { background: var(--primary); color: white; border: none; padding: 16px 30px; border-radius: 0.8rem; font-weight: 700; cursor: pointer; width: 100%; font-size: 1rem; transition: transform 0.1s; }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .hint { font-size: 0.8rem; color: #94a3b8; margin-top: 1.2rem; }
     </style>
 </head>
 <body>
 
-<div class="container" id="main-card">
-    <div id="check-section">
-        <h1>📍 Verifica Presenza</h1>
-        <p>Attiva il GPS per sbloccare l'accesso al modulo presenze.</p>
-        <div id="status">In attesa di verifica...</div>
-        <button id="verifyBtn" class="btn" onclick="eseguiProtocollo()">Sblocca Ora</button>
-    </div>
-
-    <div id="form-wrapper">
-        <div id="iframe-container"></div>
-    </div>
+<div class="card">
+    <h1>Verifica Presenza</h1>
+    <p>Per accedere al modulo, conferma di essere nell'area autorizzata (raggio 100m).</p>
+    
+    <div id="status"></div>
+    <button id="verifyBtn" class="btn" onclick="controllaPosizione()">Verifica Posizione</button>
+    
+    <div class="hint">Assicurati di avere il GPS attivo e di aver concesso i permessi al browser.</div>
 </div>
 
 <script>
-
-    const _0x4a2 = "aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vZm9ybXMvZC9lLzFGQUlwUUxzZG1teE5rQzI0ZGlrcTB2QVFGWk01YnhhVzZ2ZnoyTExfVXpzenpfMnlBcU5PZjFRL3ZpZXdmb3JtP2VtYmVkZGVkPXRydWU=";
-
+    // --- CONFIGURAZIONE ---
+    const FORM_URL = "https://forms.gle/Xga5xZQ5kroZqKRn8";
     const TARGET_LAT = 37.651130667367816;
     const TARGET_LON = 12.588882399386437;
-    const RAGGIO_MAX = 100000;
+    const RAGGIO_MAX_METRI = 100000; // Impostato a 100 metri
 
-    function calcola(l1, o1, l2, o2) {
-        const R = 6371e3;
-        const p1 = l1 * Math.PI/180;
-        const p2 = l2 * Math.PI/180;
-        const dp = (l2-l1) * Math.PI/180;
-        const dl = (o2-o1) * Math.PI/180;
-        const a = Math.sin(dp/2)**2 + Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const statusDiv = document.getElementById('status');
+    const verifyBtn = document.getElementById('verifyBtn');
+
+    function calcolaDistanzaMetri(lat1, lon1, lat2, lon2) {
+        const R = 6371e3; // Raggio medio terrestre in metri
+        const p1 = lat1 * Math.PI/180;
+        const p2 = lat2 * Math.PI/180;
+        const dp = (lat2-lat1) * Math.PI/180;
+        const dl = (lon2-lon1) * Math.PI/180;
+
+        const a = Math.sin(dp/2) * Math.sin(dp/2) +
+                  Math.cos(p1) * Math.cos(p2) *
+                  Math.sin(dl/2) * Math.sin(dl/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+        return R * c; 
     }
 
-    function eseguiProtocollo() {
-        const btn = document.getElementById('verifyBtn');
-        const st = document.getElementById('status');
-        btn.disabled = true;
-        st.innerText = "Verifica coordinate...";
+    function controllaPosizione() {
+        verifyBtn.disabled = true;
+        statusDiv.style.color = "#475569";
+        statusDiv.innerText = "Ricerca segnale GPS...";
+
+        if (!navigator.geolocation) {
+            mostraErrore("GPS non supportato dal browser. : SE RITIENI SIA UN ERRORE RICARICA LA PAGINA E RIPROVA O CONTATTA I RAPPRESENTANTI");
+            return;
+        }
 
         navigator.geolocation.getCurrentPosition(
             (pos) => {
-                const d = calcola(TARGET_LAT, TARGET_LON, pos.coords.latitude, pos.coords.longitude);
-
-                if (d <= RAGGIO_MAX) {
-                    st.style.color = "var(--primary)";
-                    st.innerText = "✅ Accesso Autorizzato!";
-
-                    setTimeout(() => {
-
-                        const url = atob(_0x4a2); 
-                        document.getElementById('check-section').style.display = "none";
-                        document.getElementById('main-card').style.maxWidth = "900px";
-                        document.getElementById('form-wrapper').style.display = "block";
-                        document.getElementById('iframe-container').innerHTML = `<iframe src="${url}">Caricamento...</iframe>`;
-                    }, 1000);
+                const dist = calcolaDistanzaMetri(TARGET_LAT, TARGET_LON, pos.coords.latitude, pos.coords.longitude);
+                
+                if (dist <= RAGGIO_MAX_METRI) {
+                    statusDiv.style.color = "var(--primary)";
+                    statusDiv.innerText = `✅ Sei nell'area!`;
+                    setTimeout(() => { window.location.href = FORM_URL; }, 1000);
                 } else {
-                    st.style.color = "var(--error)";
-                    st.innerText = `ERRORE: Fuori raggio, se ritieni che sia un errore ricarica la pagina e riprova oppure chiedi aiuto ai rappresentanti.`;
-                    btn.disabled = false;
+                    mostraErrore(`Sei fuori raggio: SE RITIENI SIA UN ERRORE RICARICA LA PAGINA E RIPROVA O CONTATTA I RAPPRESENTANTI`);
+                    verifyBtn.disabled = false;
                 }
             },
-            () => {
-                st.style.color = "var(--error)";
-                st.innerText = "Errore: Attiva il GPS. (se ritieni che sia un errore ricarica la pagina e riprova oppure chiedi aiuto ai rappresentanti)";
-                btn.disabled = false;
+            (err) => {
+                mostraErrore("Errore: consenti l'accesso alla posizione nelle impostazioni : SE RITIENI SIA UN ERRORE RICARICA LA PAGINA E RIPROVA O CONTATTA I RAPPRESENTANTI.");
+                verifyBtn.disabled = false;
             },
-            { enableHighAccuracy: true }
+            { 
+                enableHighAccuracy: true, 
+                timeout: 10000, 
+                maximumAge: 0 
+            }
         );
+    }
+
+    function mostraErrore(txt) {
+        statusDiv.style.color = "var(--error)";
+        statusDiv.innerText = txt;
     }
 </script>
 
