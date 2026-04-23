@@ -21,7 +21,7 @@
 
 <div class="card">
     <h1>Verifica Presenza</h1>
-    <p>Per accedere al modulo, conferma di essere nell'area autorizzata (raggio 100m).</p>
+    <p>Per accedere al modulo, conferma di essere nell'area del rivoli.</p>
     
     <div id="status"></div>
     <button id="verifyBtn" class="btn" onclick="controllaPosizione()">Verifica Posizione</button>
@@ -34,7 +34,7 @@
     const FORM_URL = "https://forms.gle/Xga5xZQ5kroZqKRn8";
     const TARGET_LAT = 37.651130667367816;
     const TARGET_LON = 12.588882399386437;
-    const RAGGIO_MAX_METRI = 100000; // Impostato a 100 metri
+    const RAGGIO_MAX_METRI = 100; 
 
     const statusDiv = document.getElementById('status');
     const verifyBtn = document.getElementById('verifyBtn');
