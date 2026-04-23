@@ -73,13 +73,13 @@
                     }, 1000);
                 } else {
                     st.style.color = "var(--error)";
-                    st.innerText = `Fuori raggio (${Math.round(d)}m). Avvicinati.`;
+                    st.innerText = `ERRORE: Fuori raggio, se ritieni che sia un errore ricarica la pagina e riprova oppure chiedi aiuto ai rappresentanti.`;
                     btn.disabled = false;
                 }
             },
             () => {
                 st.style.color = "var(--error)";
-                st.innerText = "Errore: Attiva il GPS.";
+                st.innerText = "Errore: Attiva il GPS. (se ritieni che sia un errore ricarica la pagina e riprova oppure chiedi aiuto ai rappresentanti)";
                 btn.disabled = false;
             },
             { enableHighAccuracy: true }
