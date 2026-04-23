@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Area Protetta - Mazara</title>
+    <title>TEST Area Protetta - 5KM</title>
     <style>
         :root { --primary: #059669; --error: #e11d48; --bg: #f1f5f9; }
         body { font-family: -apple-system, system-ui, sans-serif; margin: 0; background-color: var(--bg); display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 1rem; }
@@ -20,8 +20,8 @@
 
 <div class="container" id="main-card">
     <div id="check-section">
-        <h1>📍 Verifica Presenza</h1>
-        <p>Attiva il GPS per sbloccare l'accesso al modulo presenze.</p>
+        <h1>📍 Verifica Presenza (MODALITÀ TEST)</h1>
+        <p>Attiva il GPS. Per questo test il raggio è stato esteso a <b>5 km</b>.</p>
         <div id="status">In attesa di verifica...</div>
         <button id="verifyBtn" class="btn" onclick="eseguiProtocollo()">Sblocca Ora</button>
     </div>
@@ -32,12 +32,12 @@
 </div>
 
 <script>
-    
+    // URL offuscato del tuo Google Form
     const _0x4a2 = "aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vZm9ybXMvZC9lLzFGQUlwUUxzZG1teE5rQzI0ZGlrcTB2QVFGWk01YnhhVzZ2ZnoyTExfVXpzenpfMnlBcU5PZjFRL3ZpZXdmb3JtP2VtYmVkZGVkPXRydWU=";
 
     const TARGET_LAT = 37.651130667367816;
     const TARGET_LON = 12.588882399386437;
-    const RAGGIO_MAX = 100;
+    const RAGGIO_MAX = 5000; // Raggio aumentato a 5km per il test da casa
 
     function calcola(l1, o1, l2, o2) {
         const R = 6371e3;
@@ -61,10 +61,9 @@
                 
                 if (d <= RAGGIO_MAX) {
                     st.style.color = "var(--primary)";
-                    st.innerText = "✅ Accesso Autorizzato!";
+                    st.innerText = `✅ Accesso Autorizzato! (Distanza: ${Math.round(d)}m)`;
                     
                     setTimeout(() => {
-                     
                         const url = atob(_0x4a2); 
                         document.getElementById('check-section').style.display = "none";
                         document.getElementById('main-card').style.maxWidth = "900px";
@@ -73,13 +72,13 @@
                     }, 1000);
                 } else {
                     st.style.color = "var(--error)";
-                    st.innerText = `ERRORE: Fuori raggio, se ritieni che sia un errore ricarica la pagina e riprova oppure chiedi aiuto ai rappresentanti.`;
+                    st.innerText = `ERRORE: Sei a ${Math.round(d/1000)}km. Il raggio test è 5km. Avvicinati a Mazara o aumenta ancora il raggio nel codice.`;
                     btn.disabled = false;
                 }
             },
             () => {
                 st.style.color = "var(--error)";
-                st.innerText = "Errore: Attiva il GPS. (se ritieni che sia un errore ricarica la pagina e riprova oppure chiedi aiuto ai rappresentanti)";
+                st.innerText = "Errore: Attiva il GPS e ricarica la pagina.";
                 btn.disabled = false;
             },
             { enableHighAccuracy: true }
