@@ -3,41 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEST Area Protetta - 5KM</title>
+    <title>Area Protetta - Mazara</title>
     <style>
         :root { --primary: #059669; --error: #e11d48; --bg: #f1f5f9; }
         body { font-family: -apple-system, system-ui, sans-serif; margin: 0; background-color: var(--bg); display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 1rem; }
-        .container { background: white; padding: 2rem; border-radius: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; max-width: 500px; width: 100%; transition: max-width 0.5s ease; }
+        .container { background: white; padding: 2rem; border-radius: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; max-width: 500px; width: 100%; }
         h1 { font-size: 1.4rem; color: #0f172a; margin-bottom: 1rem; }
-        #status { font-weight: 700; margin: 1.5rem 0; font-size: 1rem; color: #475569; }
-        .btn { background: var(--primary); color: white; border: none; padding: 18px 30px; border-radius: 1rem; font-weight: 700; cursor: pointer; width: 100%; font-size: 1.1rem; }
-        .btn:disabled { opacity: 0.5; }
-        #form-wrapper { display: none; margin-top: 1rem; width: 100%; }
-        iframe { width: 100%; height: 80vh; border: none; border-radius: 0.5rem; }
+        p { color: #475569; line-height: 1.5; }
+        #status { font-weight: 700; margin: 1.5rem 0; font-size: 1rem; color: #475569; min-height: 1.5rem; }
+        .btn { background: var(--primary); color: white; border: none; padding: 18px 30px; border-radius: 1rem; font-weight: 700; cursor: pointer; width: 100%; font-size: 1.1rem; transition: background 0.2s; }
+        .btn:active { background: #047857; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 <body>
 
 <div class="container" id="main-card">
     <div id="check-section">
-        <h1>📍 Verifica Presenza (MODALITÀ TEST)</h1>
-        <p>Attiva il GPS. Per questo test il raggio è stato esteso a <b>5 km</b>.</p>
+        <h1>📍 Verifica Presenza</h1>
+        <p>Attiva il GPS per sbloccare l'accesso al modulo presenze.<br>
+        <small>(Accesso riservato solo a email istituzionali)</small></p>
+        
         <div id="status">In attesa di verifica...</div>
-        <button id="verifyBtn" class="btn" onclick="eseguiProtocollo()">Sblocca Ora</button>
-    </div>
-
-    <div id="form-wrapper">
-        <div id="iframe-container"></div>
+        
+        <button id="verifyBtn" class="btn" onclick="eseguiProtocollo()">Verifica e Apri Modulo</button>
     </div>
 </div>
 
 <script>
-    // URL offuscato del tuo Google Form
+    // URL offuscato del Google Form
     const _0x4a2 = "aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vZm9ybXMvZC9lLzFGQUlwUUxzZG1teE5rQzI0ZGlrcTB2QVFGWk01YnhhVzZ2ZnoyTExfVXpzenpfMnlBcU5PZjFRL3ZpZXdmb3JtP2VtYmVkZGVkPXRydWU=";
 
     const TARGET_LAT = 37.651130667367816;
     const TARGET_LON = 12.588882399386437;
-    const RAGGIO_MAX = 5000; // Raggio aumentato a 5km per il test da casa
+    const RAGGIO_MAX = 100; // Impostato a 100 metri
 
     function calcola(l1, o1, l2, o2) {
         const R = 6371e3;
@@ -53,7 +52,8 @@
         const btn = document.getElementById('verifyBtn');
         const st = document.getElementById('status');
         btn.disabled = true;
-        st.innerText = "Verifica coordinate...";
+        st.innerText = "Verifica coordinate in corso...";
+        st.style.color = "#475569";
 
         navigator.geolocation.getCurrentPosition(
             (pos) => {
@@ -61,27 +61,29 @@
                 
                 if (d <= RAGGIO_MAX) {
                     st.style.color = "var(--primary)";
-                    st.innerText = `✅ Accesso Autorizzato! (Distanza: ${Math.round(d)}m)`;
+                    st.innerText = "✅ Accesso Autorizzato! Reindirizzamento...";
                     
                     setTimeout(() => {
+                        // Decodifica l'URL e reindirizza l'utente direttamente
                         const url = atob(_0x4a2); 
-                        document.getElementById('check-section').style.display = "none";
-                        document.getElementById('main-card').style.maxWidth = "900px";
-                        document.getElementById('form-wrapper').style.display = "block";
-                        document.getElementById('iframe-container').innerHTML = `<iframe src="${url}">Caricamento...</iframe>`;
-                    }, 1000);
+                        window.location.href = url;
+                    }, 800);
                 } else {
                     st.style.color = "var(--error)";
-                    st.innerText = `ERRORE: Sei a ${Math.round(d/1000)}km. Il raggio test è 5km. Avvicinati a Mazara o aumenta ancora il raggio nel codice.`;
+                    st.innerText = `ERRORE: Fuori raggio. Se ritieni che sia un errore ricarica la pagina o chiedi aiuto ai rappresentanti.`;
                     btn.disabled = false;
                 }
             },
             () => {
                 st.style.color = "var(--error)";
-                st.innerText = "Errore: Attiva il GPS e ricarica la pagina.";
+                st.innerText = "Errore: Attiva il GPS. (Se l'errore persiste, ricarica la pagina o chiedi aiuto ai rappresentanti)";
                 btn.disabled = false;
             },
-            { enableHighAccuracy: true }
+            { 
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
         );
     }
 </script>
