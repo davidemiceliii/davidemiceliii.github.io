@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESENZE ASSEMBLEA</title>
+    <title>Area Protetta - Mazara</title>
     <style>
         :root { --primary: #059669; --error: #e11d48; --bg: #f1f5f9; }
         body { font-family: -apple-system, system-ui, sans-serif; margin: 0; background-color: var(--bg); display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 1rem; }
-        .container { background: white; padding: 2rem; border-radius: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; max-width: 500px; width: 100%; }
+        .container { background: white; padding: 2rem; border-radius: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; max-width: 500px; width: 100%; transition: max-width 0.5s ease; }
         h1 { font-size: 1.4rem; color: #0f172a; margin-bottom: 1rem; }
-        p { color: #475569; line-height: 1.5; font-size: 0.95rem; }
-        #status { font-weight: 700; margin: 1.5rem 0; font-size: 1rem; color: #475569; min-height: 1.5rem; }
-        .btn { background: var(--primary); color: white; border: none; padding: 18px 30px; border-radius: 1rem; font-weight: 700; cursor: pointer; width: 100%; font-size: 1.1rem; transition: background 0.2s; }
-        .btn:active { background: #047857; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .footer-note { font-size: 0.8rem; color: #94a3b8; margin-top: 1.5rem; }
+        #status { font-weight: 700; margin: 1.5rem 0; font-size: 1rem; color: #475569; }
+        .btn { background: var(--primary); color: white; border: none; padding: 18px 30px; border-radius: 1rem; font-weight: 700; cursor: pointer; width: 100%; font-size: 1.1rem; }
+        .btn:disabled { opacity: 0.5; }
+        #form-wrapper { display: none; margin-top: 1rem; width: 100%; }
+        iframe { width: 100%; height: 80vh; border: none; border-radius: 0.5rem; }
     </style>
 </head>
 <body>
@@ -22,19 +21,19 @@
 <div class="container" id="main-card">
     <div id="check-section">
         <h1>📍 Verifica Presenza</h1>
-        <p>Per registrare la presenza, attiva il GPS. L'accesso è consentito solo a chi si trova dentro il rivoli.</p>
-        
+        <p>Attiva il GPS per sbloccare l'accesso al modulo presenze.</p>
         <div id="status">In attesa di verifica...</div>
-        
-        <button id="verifyBtn" class="btn" onclick="eseguiProtocollo()">Sblocca e Apri Modulo</button>
-        
-        <p class="footer-note">Nota: Assicurati di aver effettuato l'accesso con la tua <b>email istituzionale</b>.</p>
+        <button id="verifyBtn" class="btn" onclick="eseguiProtocollo()">Sblocca Ora</button>
+    </div>
+
+    <div id="form-wrapper">
+        <div id="iframe-container"></div>
     </div>
 </div>
 
 <script>
 
-    const _0x4a2 = "aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vZm9ybXMvZC9lLzFGQUlwUUxzZG1teE5rQzI0ZGlrcTB2QVFGWk01YnhhVzZ2ZnoyTExfVXpzenpfMnlBcU5PZjFRL3ZpZXdmb3JtP3VzcF1zaGFyaW5nJm91aWQ9MTEwMjE1MDQwOTc2Njk3ODc2OTMz";
+    const _0x4a2 = "aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vZm9ybXMvZC9lLzFGQUlwUUxzZG1teE5rQzI0ZGlrcTB2QVFGWk01YnhhVzZ2ZnoyTExfVXpzenpfMnlBcU5PZjFRL3ZpZXdmb3JtP2VtYmVkZGVkPXRydWU=";
 
     const TARGET_LAT = 37.651130667367816;
     const TARGET_LON = 12.588882399386437;
@@ -55,37 +54,35 @@
         const st = document.getElementById('status');
         btn.disabled = true;
         st.innerText = "Verifica coordinate...";
-        st.style.color = "#475569";
 
         navigator.geolocation.getCurrentPosition(
             (pos) => {
                 const d = calcola(TARGET_LAT, TARGET_LON, pos.coords.latitude, pos.coords.longitude);
-                
+
                 if (d <= RAGGIO_MAX) {
                     st.style.color = "var(--primary)";
-                    st.innerText = "✅ Posizione verificata! Apertura modulo...";
-                    
+                    st.innerText = "✅ Accesso Autorizzato!";
+
                     setTimeout(() => {
-                        // Decodifica e reindirizzamento al nuovo link
+
                         const url = atob(_0x4a2); 
-                        window.location.href = url;
-                    }, 800);
+                        document.getElementById('check-section').style.display = "none";
+                        document.getElementById('main-card').style.maxWidth = "900px";
+                        document.getElementById('form-wrapper').style.display = "block";
+                        document.getElementById('iframe-container').innerHTML = `<iframe src="${url}">Caricamento...</iframe>`;
+                    }, 1000);
                 } else {
                     st.style.color = "var(--error)";
-                    st.innerText = `ERRORE: Avvicinati per procedere, se ritieni sia un errore ricarica la pagina o riferisci ai rappresentanti.`;
+                    st.innerText = `ERRORE: Fuori raggio, se ritieni che sia un errore ricarica la pagina e riprova oppure chiedi aiuto ai rappresentanti.`;
                     btn.disabled = false;
                 }
             },
-            (error) => {
+            () => {
                 st.style.color = "var(--error)";
-                st.innerText = "Errore GPS: Consenti l'accesso alla posizione nelle impostazioni del browser, se ritieni sia un errore ricarica la pagina o riferisci ai rappresentanti.";
+                st.innerText = "Errore: Attiva il GPS. (se ritieni che sia un errore ricarica la pagina e riprova oppure chiedi aiuto ai rappresentanti)";
                 btn.disabled = false;
             },
-            { 
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-            }
+            { enableHighAccuracy: true }
         );
     }
 </script>
